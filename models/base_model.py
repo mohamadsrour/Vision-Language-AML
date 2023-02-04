@@ -23,23 +23,6 @@ class FeatureExtractor(nn.Module):
           y = y.unsqueeze(0)
         return y
 
-class GradientReversal(Function):
-    """The GradientReversal layer used to reverse the gradient 
-    in adversarial training step."""
-
-    @staticmethod
-    def forward(ctx, x, alpha):
-        ctx.save_for_backward(x, alpha)
-        return x.view_as(x)
-    
-    @staticmethod
-    def backward(ctx, grad_output):
-        grad_input = None
-        _, alpha = ctx.saved_tensors
-        if ctx.needs_input_grad[0]:
-            grad_input = - alpha*grad_output
-        return grad_input, None
-
 class BaselineModel(nn.Module):
     def __init__(self):
         super(BaselineModel, self).__init__()
@@ -124,7 +107,7 @@ class DomainDisentangleModel(nn.Module):
             nn.ReLU()
         )
 
-    def forward(self, x, alpha):
+    def forward(self, x):
 
         features = self.feature_extractor(x)
         #print("OK 1")
@@ -138,17 +121,11 @@ class DomainDisentangleModel(nn.Module):
         #print("OK 5")
         domain_output = self.domain_classifier(f_ds)
         #print("OK 6")
-        # in order to compute the gradient reverse 
-        # we let the features pass from the GradientReversal layer first
-        
-        reverse_grad_f_cs = GradientReversal.apply(f_cs, alpha)
-        #print("OK 7")
-        #print("OK 8")
-        reverse_grad_f_ds = GradientReversal.apply(f_ds, alpha)
-        class_output_ds = self.category_classifier(reverse_grad_f_ds)
+
+        class_output_ds = self.category_classifier(f_ds)
 
         #print("OK 9")
-        domain_output_cs = self.domain_classifier(reverse_grad_f_cs)
+        domain_output_cs = self.domain_classifier(f_cs)
         #print("OK 10")
 
         return class_output, domain_output, features, reconstructed_features, class_output_ds, domain_output_cs
@@ -215,7 +192,7 @@ class CLIPDomainDisentangleModel(nn.Module):
             nn.ReLU()
         )
 
-    def forward(self, x, descr, alpha, train):
+    def forward(self, x, descr, train):
 
         features = self.feature_extractor(x)
         #print("OK 1")
@@ -229,17 +206,10 @@ class CLIPDomainDisentangleModel(nn.Module):
         #print("OK 5")
         domain_output = self.domain_classifier(f_ds)
         #print("OK 6")
-        # in order to compute the gradient reverse 
-        # we let the features pass from the GradientReversal layer first
-        
-        reverse_grad_f_cs = GradientReversal.apply(f_cs, alpha)
-        #print("OK 7")
-        #print("OK 8")
-        reverse_grad_f_ds = GradientReversal.apply(f_ds, alpha)
-        class_output_ds = self.category_classifier(reverse_grad_f_ds)
+        class_output_ds = self.category_classifier(f_ds)
 
         #print("OK 9")
-        domain_output_cs = self.domain_classifier(reverse_grad_f_cs)
+        domain_output_cs = self.domain_classifier(f_cs)
         #print("OK 10")
 
         if train:

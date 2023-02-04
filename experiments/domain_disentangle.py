@@ -37,15 +37,7 @@ class DomainDisentangleExperiment:
         self.class_loss_ent = EntropyLoss()
         self.domain_loss_ent = EntropyLoss() 
 
-        self.max_epoch = opt["max_iterations"]
-        self.epoch = 0
-
     def train_iteration(self, data):
-        p = self.epoch / self.max_epoch
-        alpha = 2. / (1. + np.exp(-10 * p)) - 1
-        self.epoch += 1
-
-        alpha = torch.Tensor([alpha]).to(self.device)
         src_img, src_y, trg_img, _ = data
  
         src_img = src_img.to(self.device)
@@ -57,8 +49,8 @@ class DomainDisentangleExperiment:
 
         # Processing a Source Domain Image
         # src_class_out, src_domain_out, src_features_out, src_reconstructor_out = self.model(src_img)
-        src_class_output, src_domain_output, src_features, src_reconstructed_features, src_class_output_ds, src_domain_output_cs = self.model(src_img, alpha)
-        _, trg_domain_output, trg_features, trg_reconstructed_features, trg_class_output_ds, trg_domain_output_cs = self.model(trg_img, alpha)
+        src_class_output, src_domain_output, src_features, src_reconstructed_features, src_class_output_ds, src_domain_output_cs = self.model(src_img)
+        _, trg_domain_output, trg_features, trg_reconstructed_features, trg_class_output_ds, trg_domain_output_cs = self.model(trg_img)
 
         # source class loss
         src_loss_class = self.class_loss(src_class_output, src_y)
@@ -157,13 +149,12 @@ class DomainDisentangleExperiment:
         count = 0
         loss = 0
 
-        alpha = torch.Tensor(1).to(self.device)
         with torch.no_grad():
             for x, y in loader:
                 x = x.to(self.device)
                 y = y.to(self.device)
 
-                logits = self.model(x, alpha)[0]
+                logits = self.model(x)[0]
                 loss += self.class_loss(logits, y)
                 pred = torch.argmax(logits, dim=-1)
 
