@@ -86,7 +86,7 @@ class DomainDisentangleModel(nn.Module):
         )
 
         # domain classifier
-        self.domain_classifier = nn.Linear(512, 7)
+        self.domain_classifier = nn.Linear(512, 2)
 
         # category classifier
         self.category_classifier = nn.Linear(512, 7)
@@ -170,7 +170,7 @@ class CLIPDomainDisentangleModel(nn.Module):
         self.domain_classifier = nn.Linear(512, 2)
 
         # category classifier
-        self.category_classifier = nn.Linear(512, 2)
+        self.category_classifier = nn.Linear(512, 7)
 
         # reconstructor
         self.reconstructor = nn.Sequential(
