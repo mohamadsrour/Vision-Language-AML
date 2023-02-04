@@ -64,8 +64,8 @@ class DomainDisentangleModel(nn.Module):
             nn.BatchNorm1d(512),
             nn.ReLU(),
 
-            nn.Linear(512, 256), # changed 512 to 256
-            nn.BatchNorm1d(256), # changed 512 to 256
+            nn.Linear(512, 512), 
+            nn.BatchNorm1d(512),
             nn.ReLU()
         )
 
@@ -80,21 +80,20 @@ class DomainDisentangleModel(nn.Module):
             nn.BatchNorm1d(512),
             nn.ReLU(),
 
-            nn.Linear(512, 256), # changed 512 to 256
-            nn.BatchNorm1d(256), # changed 512 to 256
+            nn.Linear(512, 512), 
+            nn.BatchNorm1d(512), 
             nn.ReLU()
         )
 
         # domain classifier
-        self.domain_classifier = nn.Sequential(nn.Linear(256, 64), nn.LeakyReLU(),
-                                               nn.Linear(64, 2), nn.Softmax())
+        self.domain_classifier = nn.Linear(512, 7)
 
         # category classifier
-        self.category_classifier = nn.Sequential(nn.Linear(256, 7), nn.BatchNorm1d(7), nn.Softmax())
+        self.category_classifier = nn.Linear(512, 7)
 
         # reconstructor
         self.reconstructor = nn.Sequential(
-            nn.Linear(512, 512),
+            nn.Linear(1024, 512),
             nn.BatchNorm1d(512),
             nn.ReLU(),
 
@@ -107,26 +106,26 @@ class DomainDisentangleModel(nn.Module):
             nn.ReLU()
         )
 
+    def set_requires_grad(self, layer, requires_grad):
+        for param in layer.parameters():
+            param.requires_grad = requires_grad
+        return
+
     def forward(self, x):
-
         features = self.feature_extractor(x)
-        #print("OK 1")
         f_cs = self.category_encoder(features)
-        #print("OK 2")
         f_ds = self.domain_encoder(features)
-        #print("OK 3")
         reconstructed_features = self.reconstructor(torch.cat((f_cs, f_ds), 1))
-        #print("OK 4")
         class_output = self.category_classifier(f_cs)
-        #print("OK 5")
         domain_output = self.domain_classifier(f_ds)
-        #print("OK 6")
 
+        self.set_requires_grad(self.category_classifier, False)
         class_output_ds = self.category_classifier(f_ds)
+        self.set_requires_grad(self.category_classifier, True)
 
-        #print("OK 9")
+        self.set_requires_grad(self.domain_classifier, False)
         domain_output_cs = self.domain_classifier(f_cs)
-        #print("OK 10")
+        self.set_requires_grad(self.domain_classifier, True)
 
         return class_output, domain_output, features, reconstructed_features, class_output_ds, domain_output_cs
 
@@ -146,8 +145,8 @@ class CLIPDomainDisentangleModel(nn.Module):
             nn.BatchNorm1d(512),
             nn.ReLU(),
 
-            nn.Linear(512, 256), # changed 512 to 256
-            nn.BatchNorm1d(256), # changed 512 to 256
+            nn.Linear(512, 512), 
+            nn.BatchNorm1d(512),
             nn.ReLU()
         )
 
@@ -162,24 +161,20 @@ class CLIPDomainDisentangleModel(nn.Module):
             nn.BatchNorm1d(512),
             nn.ReLU(),
 
-            nn.Linear(512, 256), # changed 512 to 256
-            nn.BatchNorm1d(256), # changed 512 to 256
+            nn.Linear(512, 512), 
+            nn.BatchNorm1d(512),
             nn.ReLU()
         )
 
         # domain classifier
-        self.domain_classifier = nn.Sequential(nn.Linear(256, 64), nn.LeakyReLU(),
-                                               nn.Linear(64, 2), nn.Softmax())
+        self.domain_classifier = nn.Linear(512, 2)
 
         # category classifier
-        self.category_classifier = nn.Sequential(nn.Linear(256, 7), nn.BatchNorm1d(7), nn.Softmax())
-
-        #CLIP linear layer
-        self.clip_layer = nn.Linear(512, 256)
+        self.category_classifier = nn.Linear(512, 2)
 
         # reconstructor
         self.reconstructor = nn.Sequential(
-            nn.Linear(512, 512),
+            nn.Linear(1024, 512),
             nn.BatchNorm1d(512),
             nn.ReLU(),
 
@@ -192,30 +187,27 @@ class CLIPDomainDisentangleModel(nn.Module):
             nn.ReLU()
         )
 
-    def forward(self, x, descr, train):
+    def set_requires_grad(self, layer, requires_grad):
+        for param in layer.parameters():
+            param.requires_grad = requires_grad
+        return
 
+    def forward(self, x):
         features = self.feature_extractor(x)
-        #print("OK 1")
         f_cs = self.category_encoder(features)
-        #print("OK 2")
         f_ds = self.domain_encoder(features)
-        #print("OK 3")
         reconstructed_features = self.reconstructor(torch.cat((f_cs, f_ds), 1))
-        #print("OK 4")
         class_output = self.category_classifier(f_cs)
-        #print("OK 5")
         domain_output = self.domain_classifier(f_ds)
-        #print("OK 6")
+
+        self.set_requires_grad(self.category_classifier, False)
         class_output_ds = self.category_classifier(f_ds)
+        self.set_requires_grad(self.category_classifier, True)
 
-        #print("OK 9")
+        self.set_requires_grad(self.domain_classifier, False)
         domain_output_cs = self.domain_classifier(f_cs)
-        #print("OK 10")
+        self.set_requires_grad(self.domain_classifier, True)
 
-        if train:
-            out = self.clip_layer(descr)
+        return class_output, domain_output, features, reconstructed_features, class_output_ds, domain_output_cs, f_ds
 
-            return class_output, domain_output, features, reconstructed_features, class_output_ds, domain_output_cs, out, f_ds
-        else :
-            return class_output, domain_output, features, reconstructed_features, class_output_ds, domain_output_cs
         
