@@ -1,10 +1,11 @@
 import os
 import logging
 from parse_args import parse_arguments
-from load_data import build_splits_baseline, build_splits_domain_disentangle, build_splits_clip_disentangle
+from load_data import build_splits_baseline, build_splits_domain_disentangle, build_splits_clip_disentangle, build_splits_baseline_dg, build_splits_domain_disentangle_dg
 from experiments.baseline import BaselineExperiment
 from experiments.domain_disentangle import DomainDisentangleExperiment
 from experiments.clip_disentangle import CLIPDisentangleExperiment
+from experiments.domain_disentangle_dg import DomainDisentangleDGExperiment
 
 def setup_experiment(opt):
     
@@ -22,6 +23,19 @@ def setup_experiment(opt):
         experiment = CLIPDisentangleExperiment(opt)
         train_loader, val_loader, test_loader = build_splits_clip_disentangle(opt)
         return experiment, train_loader, val_loader, test_loader
+    
+    elif opt['experiment'] == 'baseline_dg':
+        experiment = BaselineExperiment(opt)
+        train_loader, validation_loader, test_loader = build_splits_baseline_dg(opt)
+        return experiment, train_loader, validation_loader, test_loader
+
+    elif opt['experiment']  == 'domain_disentangle_dg':
+        experiment = DomainDisentangleDGExperiment(opt)
+        train_loader, val_loader, test_loader = build_splits_domain_disentangle_dg(opt)
+        return experiment, train_loader, val_loader, test_loader
+
+    elif opt['experiment']  == 'clip_disentangle_dg':
+        raise ValueError('Eperiment not yet supported.')
 
     else:
         raise ValueError('Experiment not yet supported.')
