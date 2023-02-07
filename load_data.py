@@ -472,10 +472,7 @@ def build_splits_clip_disentangle(opt):
     """Return DataLoaders for the CLIP domain disentangle experiment."""
     source_domain = 'art_painting'
     target_domain = opt['target_domain']
-    # how to split the samples??
-    # since the target is used at traing time without the label
-    # it makes sense to use it as the test set...
-    # I will ask the professor
+
     source_examples = read_lines_clip(opt['data_path'], source_domain)
     target_examples = read_lines_clip(opt['data_path'], target_domain)
     
