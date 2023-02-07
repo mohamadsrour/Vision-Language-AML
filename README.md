@@ -23,6 +23,8 @@ data/PACS/kfold/art_painting/dog/pic_003.jpg
 
 At this point you should be able to run and edit the base code provided.
 
+We created two new folder labeled_PACS and our_labeled_PACS, the later contains the labeled images we were assigned, and the first is a collection of our labeled images and those obtained [here](https://drive.google.com/drive/folders/1ccNew39f6PgPgkZCvKMqqCtTy9emi-_S)
+
 ## Base Code Structure
 | File | Description |
 | ---- | ----------- |
@@ -31,8 +33,10 @@ At this point you should be able to run and edit the base code provided.
 | `load_data.py` | contains the code to load data, build splits and dataloaders. |
 | `models/base_model.py` | contains the architectures used in the project. |
 | `experiments/baseline.py` | contains the code to reproduce the baseline experiment (see point 1. of the project) |
-| `experiments/domain_disentangle.py` | contains the skeleton code to implement the domain disentanglement experiment (see point 2. of the project) |
-| `experiments/clip_disentangle.py` | contains the skeleton code to implement the disentanglement experiment using CLIP (see point 4. of the project) |
+| `experiments/domain_disentangle.py` | contains the code to implement the domain disentanglement experiment (see point 2. of the project) |
+| `experiments/clip_disentangle.py` | contains the code to implement the disentanglement experiment using CLIP (see point 4. of the project) |
+| `experiments/domain_disentangle_dg.py` | contains the code to implement the domain disentanglement experiment with the Domain Generalization configuration (see variation 1. of the project) |
+| `experiments/clip_disentangle_dg.py` | contains the code to implement the disentanglement experiment using CLIP with the Domain Generalization configuration (see variation 1. of the project) |
 
 ## Base Command Line Arguments
 | Argument &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; &nbsp;  | Description |
@@ -41,6 +45,9 @@ At this point you should be able to run and edit the base code provided.
 | | `baseline`: runs the experiment needed to reproduce the baseline (see point 1. of the project) |
 | | `domain_disentangle`: runs the domain disentanglement experiment (see point 2. of the project) |
 | | `clip_disentangle`: runs the disentanglement experiment using CLIP (see point 4. of the project) |
+| | `baseline_dg`: runs the baseline experiment with the Domain Generalization configuration (see variation 1. of the project) |
+| | `domain_disentangle_dg`: runs the domain disentanglement experiment with the Domain Generalization configuration (see variation 1. of the project) |
+| | `clip_disentangle_dg`: runs the disentanglement experiment using CLIP with the Domain Generalization configuration (see variation 1. of the project) |
 | `--target_domain` | which visual domain to use as the target domain choosing among `art_painting`, `cartoon`, `sketch`, `photo` |
 | `--lr` | learning rate used in the optimization procedure. *Do not change it.* |
 | `--max_iterations` | total number of iterations of the optimization procedure. *Do not change it*, unless you have to reduce batch size. In that case, (max_iterations / batch_size) ratio shall be constant. |
