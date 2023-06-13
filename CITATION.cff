@@ -1,11 +1,22 @@
+# This CITATION.cff file was generated with cffinit.
+# Visit https://bit.ly/cffinit to generate yours today!
+
 cff-version: 1.2.0
-message: "If you use this software, please cite it as below."
+title: AMLProject1
+message: >-
+  If you use this software, please cite it using the
+  metadata from this file.
+type: software
 authors:
-- family-names: ""Mohamad"
-  given-names: "Srour"
-- family-names: "Vito"
-  given-names: "Ruggirello"
-title: "Domain Disentanglement through Natural Language"
-version: 1.0 
-date-released: 2023-06-22
-url: https://github.com/mohamadsrour/Vision-Language-AML
+  - given-names: Mohamad
+    family-names: Srour
+  - family-names: Ruggirello
+    given-names: Vito
+repository-code: 'https://github.com/mohamadsrour/Vision-Language-AML/'
+abstract: >-
+  umination condition or background. Unfortunately, given
+  the scarcity of training data, this is often the case.
+    
+    Allowing the model to better generalize is not a novel task, and in a effort to address this problem, this project aims to use several techniques to
+    improve the performance in a domain shift setting. In particular, we applied Domain Adaptation through Domain Disentanglement, aiming to let the model learn category specific features, and their generations, which are independent form the domain.
+    Additionally, we studied how effectively domain invariant features, such as a natural language description of the visual domain, can help to further improve disentanglement effectiveness. 
