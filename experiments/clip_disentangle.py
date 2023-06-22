@@ -47,15 +47,17 @@ class CLIPDisentangleExperiment:
 
     def train_iteration(self, data):
         src_img, src_y, src_d, trg_img, _, trg_d = data
- 
+    
+        src_with_desc_mask = [d != "" for d in src_d]
+        trg_with_desc_mask = [d != "" for d in trg_d]
         src_img = src_img.to(self.device)
         src_y = src_y.to(self.device)
-        src_d = clip.tokenize(src_d, truncate = True).to(self.device)
-        src_d = self.clip_model.encode_text(src_d)
+        src_desc = clip.tokenize(src_d, truncate = True).to(self.device)[src_with_desc_mask]
+        src_desc = self.clip_model.encode_text(src_desc)
 
         trg_img = trg_img.to(self.device)
-        trg_d = clip.tokenize(trg_d, truncate = True).to(self.device)
-        trg_d = self.clip_model.encode_text(trg_d)
+        trg_desc = clip.tokenize(trg_d, truncate = True).to(self.device)[trg_with_desc_mask]
+        trg_desc = self.clip_model.encode_text(trg_desc)
         
         self.optimizer.zero_grad()
 
@@ -82,8 +84,14 @@ class CLIPDisentangleExperiment:
         src_loss_class_ent = self.class_loss_ent(src_class_output_ds)
 
         #CLIP loss
-        src_clip_loss = self.clip_loss(src_d, src_f_ds)
-        trg_clip_loss = self.clip_loss(trg_d, trg_f_ds)
+        if not any(src_with_desc_mask):
+            src_clip_loss = 0
+        else:
+            src_clip_loss = self.clip_loss(src_desc, src_f_ds[src_with_desc_mask])
+        if not any(trg_with_desc_mask):
+            trg_clip_loss = 0
+        else:
+            trg_clip_loss = self.clip_loss(trg_desc, trg_f_ds[trg_with_desc_mask])
 
         tot_clip_loss = (trg_clip_loss + src_clip_loss) / 2
 

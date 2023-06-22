@@ -4,6 +4,11 @@ from torch import nn
 from torch.nn import functional as F
 from torch import cat
 import numpy as np
+import wandb
+
+
+
+
 
 
 class EntropyLoss(nn.Module):
@@ -22,6 +27,26 @@ class DomainDisentangleExperiment:
         self.opt = opt
         self.device = torch.device('cpu' if  not torch.cuda.is_available() else 'cuda:0')
 
+        if (opt['w']):
+            self.W = opt['w']
+        else:
+            self.W = [0.04, 0.09, 0.02, 1]
+
+        wandb.init(
+            # set the wandb project where this run will be logged
+            project="domain-disentangle",
+            
+            # track hyperparameters and run metadata
+            config={
+            "experiment": "domain_disentangle",
+            "learning_rate": opt['lr'],
+            "dataset": "PACS",
+            "w_1": self.W[0],
+            "w_2": self.W[1],
+            "w_3": self.W[2],
+            "alpha": self.W[3]
+            }
+        )
         # Setup model
         self.model = DomainDisentangleModel()
         self.model.train()
@@ -69,8 +94,22 @@ class DomainDisentangleExperiment:
 
         tot_loss_domain_ent = self.domain_loss_ent(cat((src_domain_output_cs, trg_domain_output_cs), dim=0))
         
-        tot_loss = (0.4 * src_loss_class) + (0.09 * tot_loss_domain) + (0.02 * tot_loss_rec) + (0.4 * src_loss_class_ent) + (0.09 * tot_loss_domain_ent)
+        #tot_loss = (0.4 * src_loss_class) + (0.09 * tot_loss_domain) + (0.02 * tot_loss_rec) + (0.4 * src_loss_class_ent) + (0.09 * tot_loss_domain_ent)
+        L_class = src_loss_class + self.W[3] * src_loss_class_ent
+        L_domain = tot_loss_domain + self.W[3] * tot_loss_domain_ent
+        L_rec = tot_loss_rec
 
+        tot_loss = self.W[0] * L_class + self.W[1] * L_domain + self.W[2] * L_rec
+
+        wandb.log({"L_class_ce": src_loss_class,
+                   "L_class_ent": src_loss_class_ent,
+                   "L_class": L_class,
+                   "L_domain_ce": tot_loss_domain,
+                   "L_domain_ent": tot_loss_domain_ent,
+                   "L_domain": L_domain,
+                   "L_rec": L_rec,
+                   "L": tot_loss})
+        
         tot_loss.backward()
         self.optimizer.step()
         return tot_loss.item()

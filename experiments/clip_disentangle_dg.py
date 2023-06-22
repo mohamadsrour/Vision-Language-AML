@@ -69,11 +69,17 @@ class CLIPDomainDisentangleDGExperiment:
 
         src_loss_domain_ent = self.domain_loss_ent(src_domain_output_cs)
 
-        desc_token = clip.tokenize(src_desc, truncate=True).to(self.device)
+        with_desc_mask = [d != "" for d in src_desc]
+        desc_token = clip.tokenize(src_desc, truncate=True).to(self.device)[with_desc_mask]
         desc_feat = self.clip_model.encode_text(desc_token).to(self.device)
-        clip_loss = self.mse_loss(f_ds, desc_feat)
 
-        tot_loss = (0.4 * src_loss_class) + (0.09 * src_loss_domain) + (0.02 * src_loss_rec) + (0.4 * src_loss_class_ent) + (0.09 * src_loss_domain_ent) + (0.02 * clip_loss)
+        #CLIP loss
+        if not any(with_desc_mask):
+            src_clip_loss = 0
+        else:
+            clip_loss = self.mse_loss(f_ds[with_desc_mask], desc_feat)
+
+        tot_loss = (0.4 * src_loss_class) + (0.08 * src_loss_domain) + (0.02 * src_loss_rec) + (0.4 * src_loss_class_ent) + (0.08 * src_loss_domain_ent) + (0.01 * clip_loss)
 
         tot_loss.backward()
         self.optimizer.step()
