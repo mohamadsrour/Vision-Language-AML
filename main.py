@@ -7,6 +7,8 @@ from experiments.domain_disentangle import DomainDisentangleExperiment
 from experiments.clip_disentangle import CLIPDisentangleExperiment
 from experiments.domain_disentangle_dg import DomainDisentangleDGExperiment
 from experiments.clip_disentangle_dg import CLIPDomainDisentangleDGExperiment
+from datetime import timedelta
+import time
 
 def setup_experiment(opt):
     
@@ -46,6 +48,7 @@ def setup_experiment(opt):
     return experiment, train_loader, validation_loader, test_loader
 
 def main(opt):
+    start = time.time()
     experiment, train_loader, validation_loader, test_loader = setup_experiment(opt)
 
     if not opt['test']: # Skip training if '--test' flag is set
@@ -81,10 +84,20 @@ def main(opt):
                 if iteration > opt['max_iterations']:
                     break
 
+    finish = time.time()
+    elapsed = finish - start
+    logging.info(f'[TIME]: {timedelta(seconds=elapsed)}')
+
     # Test
     experiment.load_checkpoint(f'{opt["output_path"]}/best_checkpoint.pth')
+    
     test_accuracy, _ = experiment.validate(test_loader)
     logging.info(f'[TEST] Accuracy: {(100 * test_accuracy):.2f}')
+
+
+    if opt["validate_source"]:
+        src_val_accuracy, _ = experiment.validate(validation_loader)
+        logging.info(f'[VAL] Accuracy with best: {(100 * src_val_accuracy):.2f}')
 
 
 if __name__ == '__main__':
